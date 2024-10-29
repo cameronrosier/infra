@@ -1,130 +1,131 @@
-# ============= #
-# DNS Variables #
-# ============= #
+variable "app_name" {
+  description = "The name of the application"
+  type        = string
+  default     = "robopd2"
+}
+
+variable "cluster_name" {
+  description = "The name of the EKS cluster"
+  type        = string
+}
+
+variable "vpc_tag_name" {
+  type        = string
+  description = "Name tag for the VPC"
+}
+
+variable "route_table_tag_name" {
+  type        = string
+  default     = "main"
+  description = "Route table description"
+}
+
+variable "vpc_cidr_block" {
+  type        = string
+  default     = "10.0.0.0/16"
+  description = "CIDR block range for vpc"
+}
+
+variable "private_subnet_cidr_blocks" {
+  type        = list(string)
+  default     = ["10.0.0.0/24", "10.0.1.0/24"]
+  description = "CIDR block ranges for the private subnets"
+}
+
+variable "public_subnet_cidr_block" {
+  type        = string
+  default     = "10.0.2.0/24"
+  description = "CIDR block range for the public subnet"
+}
+
+variable "private_subnet_tag_name" {
+  type        = string
+  default     = "Robopd2 EKS Cluster Private Subnet"
+  description = "Name tag for the private subnet"
+}
+
+variable "public_subnet_tag_name" {
+  type        = string
+  default     = "Robopd2 EKS Cluster Public Subnet"
+  description = "Name tag for the public subnet"
+}
+
+variable "azs" {
+  type        = list(string)
+  default     = ["us-east-1a", "us-east-1b"]
+  description = "List of availability zones for the selected region"
+}
+
+variable "region" {
+  description = "aws region to deploy to"
+  type        = string
+}
+
+variable "node_group_name" {
+  description = "Name of the Node Group"
+  type        = string
+}
+
+variable "endpoint_private_access" {
+  type        = bool
+  default     = true
+  description = "Indicates whether or not the Amazon EKS private API server endpoint is enabled."
+}
+
+variable "endpoint_public_access" {
+  type        = bool
+  default     = true
+  description = "Indicates whether or not the Amazon EKS public API server endpoint is enabled."
+}
+
+variable "ami_type" {
+  description = "Type of Amazon Machine Image (AMI) associated with the EKS Node Group. Defaults to AL2_x86_64. Valid values: AL2_x86_64, AL2_x86_64_GPU."
+  type        = string
+  default     = "AL2_ARM_64"
+}
+
+variable "disk_size" {
+  description = "Disk size in GiB for worker nodes. Defaults to 20."
+  type        = number
+  default     = 20
+}
+
+variable "instance_types" {
+  type        = list(string)
+  default     = ["t4g.medium"]
+  description = "Set of instance types associated with the EKS Node Group."
+}
+
+variable "pvt_desired_size" {
+  description = "Desired number of worker nodes in private subnet"
+  default     = 2
+  type        = number
+}
+
+variable "pvt_max_size" {
+  description = "Maximum number of worker nodes in private subnet."
+  default     = 2
+  type        = number
+}
+
+variable "pvt_min_size" {
+  description = "Minimum number of worker nodes in private subnet."
+  default     = 1
+  type        = number
+}
+
+variable "cluster_sg_name" {
+  description = "Name of the EKS cluster Security Group"
+  type        = string
+}
+
+variable "nodes_sg_name" {
+  description = "Name of the EKS node group Security Group"
+  type        = string
+}
+
 variable "domain_name" {
-  description = "The domain name to use for the Route 53 hosted zone"
+  description = "The domain name for the Route 53 hosted zone"
   type        = string
   default     = "robopd2.com"
-}
-
-# ==================== #
-# Networking Variables #
-# ==================== #
-variable "vpc_cidr" {
-  description = "The CIDR block for the VPC"
-  type        = string
-}
-
-variable "public_subnets" {
-  description = "A list of maps containing the public subnet definitions"
-  type = list(object({
-    cidr = string
-    az   = string
-  }))
-}
-
-variable "private_subnets" {
-  description = "A list of maps containing the private subnet definitions"
-  type = list(object({
-    cidr = string
-    az   = string
-  }))
-}
-
-# =================== #
-# ASG / EC2 Variables #
-# =================== #
-variable "image_id" {
-  description = "The AMI ID to use for the launch template"
-  type        = string
-  default     = "ami-0c55b159cbfafe1f0" # Amazon ECS optimized AMI for us-east-1
-}
-
-variable "instance_type" {
-  description = "The instance type to use for the launch template"
-  type        = string
-  default     = "t3.medium"
-}
-
-variable "autoscaling_max_size" {
-  description = "The maximum number of instances in the autoscaling group"
-  type        = number
-  default     = 2
-}
-
-variable "autoscaling_min_size" {
-  description = "The minimum number of instances in the autoscaling group"
-  type        = number
-  default     = 1
-}
-
-variable "autoscaling_desired_capacity" {
-  description = "The desired number of instances in the autoscaling group"
-  type        = number
-  default     = 1
-}
-
-# ============= #
-# ECR Variables #
-# ============= #
-variable "ecr_force_delete" {
-  description = "Whether or not to force delete the ECR repository"
-  type        = bool
-  default     = true
-}
-
-variable "scan_on_push" {
-  description = "Whether or not to scan images on push"
-  type        = bool
-  default     = true
-}
-
-# ============= #
-# ECS Variables #
-# ============= #
-variable "cluster_name" {
-  description = "The name of the ECS cluster"
-  type        = string
-}
-
-variable "ecs_apps" {
-  description = "A list of maps containing the ECS app definitions"
-  type = list(object({
-    name   = string
-    image  = string
-    ports  = map(number)
-    cpu    = number
-    memory = number
-  }))
-}
-
-# ======================= #
-# Load Balancer Variables #
-# ======================= #
-variable "internal_lb_name" {
-  description = "The name of the internal load balancer"
-  type        = string
-}
-
-variable "internal_lb_type" {
-  description = "The type of internal load balancer to create"
-  type        = string
-}
-
-# ==================== #
-# CloudWatch Variables #
-# ==================== #
-variable "retention_in_days" {
-  description = "The number of days to retain CloudWatch logs"
-  type        = number
-  default     = 14
-}
-
-# ==================== #
-# CloudFront Variables #
-# ==================== #
-variable "custom_origin_host_header" {
-  description = "The custom origin host header to use for the CloudFront distribution"
-  type        = string
-  default     = ""
 }
