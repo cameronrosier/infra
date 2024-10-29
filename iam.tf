@@ -1,98 +1,80 @@
-resource "aws_iam_role" "ecs_instance_role" {
-  name = "robopd2ECSInstanceRole"
+resource "aws_iam_role" "eks_cluster" {
+  name = var.cluster_name
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-        Action = "sts:AssumeRole"
-      }
-    ]
-  })
-}
-
-resource "aws_iam_instance_profile" "ecs_instance_profile" {
-  name = "ecsInstanceProfile"
-  role = aws_iam_role.ecs_instance_role.name
-}
-
-resource "aws_iam_role_policy_attachment" "ecs_instance_role_policy" {
-  role       = aws_iam_role.ecs_instance_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
-}
-
-
-resource "aws_iam_role" "ecs_service_role" {
-  name               = "robopd2ECSServiceRole"
-  assume_role_policy = data.aws_iam_policy_document.ecs_service_policy.json
-}
-
-data "aws_iam_policy_document" "ecs_service_policy" {
-  statement {
-    actions = ["sts:AssumeRole"]
-    effect  = "Allow"
-
-    principals {
-      type        = "Service"
-      identifiers = ["ecs.amazonaws.com", ]
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "eks.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
     }
+  ]
+}
+POLICY
+
+  lifecycle {
+    create_before_destroy = true
+    ignore_changes        = all
   }
 }
 
-resource "aws_iam_role_policy" "ecs_service_role_policy" {
-  name   = "robopd2ECSServiceRole"
-  policy = data.aws_iam_policy_document.ecs_service_role_policy.json
-  role   = aws_iam_role.ecs_service_role.id
+resource "aws_iam_role_policy_attachment" "aws_eks_cluster_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+  role       = aws_iam_role.eks_cluster.name
 }
 
-data "aws_iam_policy_document" "ecs_service_role_policy" {
+######################
+# EKS Node IAM Roles #
+######################
+resource "aws_iam_role" "eks_nodes" {
+  name = "${var.cluster_name}-worker"
+
+  assume_role_policy = data.aws_iam_policy_document.assume_workers.json
+
+  lifecycle {
+    create_before_destroy = true
+    ignore_changes        = all
+  }
+}
+
+data "aws_iam_policy_document" "assume_workers" {
   statement {
     effect = "Allow"
-    actions = [
-      "ec2:AuthorizeSecurityGroupIngress",
-      "ec2:Describe*",
-      "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
-      "elasticloadbalancing:DeregisterTargets",
-      "elasticloadbalancing:Describe*",
-      "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
-      "elasticloadbalancing:RegisterTargets",
-      "ec2:DescribeTags",
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:DescribeLogStreams",
-      "logs:PutSubscriptionFilter",
-      "logs:PutLogEvents"
-    ]
-    resources = ["*"]
-  }
-}
 
-resource "aws_iam_role" "ecs_task_execution_role" {
-  name               = "robopd2ECSTaskExecutionRole"
-  assume_role_policy = data.aws_iam_policy_document.task_assume_role_policy.json
-}
-
-data "aws_iam_policy_document" "task_assume_role_policy" {
-  statement {
     actions = ["sts:AssumeRole"]
 
     principals {
       type        = "Service"
-      identifiers = ["ecs-tasks.amazonaws.com"]
+      identifiers = ["ec2.amazonaws.com"]
     }
   }
 }
 
-resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
-  role       = aws_iam_role.ecs_task_execution_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+resource "aws_iam_role_policy_attachment" "aws_eks_worker_node_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+  role       = aws_iam_role.eks_nodes.name
 }
 
-resource "aws_iam_role" "ecs_task_iam_role" {
-  name               = "robopd2ECSTaskIAMRole"
-  assume_role_policy = data.aws_iam_policy_document.task_assume_role_policy.json
+resource "aws_iam_role_policy_attachment" "aws_eks_cni_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  role       = aws_iam_role.eks_nodes.name
+}
+
+resource "aws_iam_role_policy_attachment" "ec2_read_only" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  role       = aws_iam_role.eks_nodes.name
+}
+
+resource "aws_iam_role_policy_attachment" "ssm_access" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  role       = aws_iam_role.eks_nodes.name
+}
+
+resource "aws_iam_instance_profile" "eks_nodes" {
+  name = "${var.cluster_name}-worker-profile"
+  role = aws_iam_role.eks_nodes.name
 }
