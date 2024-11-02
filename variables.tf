@@ -74,7 +74,7 @@ variable "endpoint_private_access" {
 
 variable "endpoint_public_access" {
   type        = bool
-  default     = true
+  default     = false
   description = "Indicates whether or not the Amazon EKS public API server endpoint is enabled."
 }
 
@@ -128,4 +128,24 @@ variable "domain_name" {
   description = "The domain name for the Route 53 hosted zone"
   type        = string
   default     = "robopd2.com"
+}
+
+variable "alb_ingress_controller_name" {
+  description = "Name of the ALB Ingress Controller"
+  type        = string
+}
+
+variable "chart_repo" {
+  description = "The Helm chart repository"
+  type        = string
+}
+
+variable "chart_name" {
+  description = "The Helm chart name"
+  type        = string
+}
+
+variable "chart_namespace" {
+  description = "The Helm chart namespace"
+  type        = string
 }
