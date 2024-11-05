@@ -11,6 +11,10 @@ on:
 jobs:
   terraform:
     runs-on: self-hosted
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
     defaults:
       run:
         working-directory: ./terraform  # Update this path
