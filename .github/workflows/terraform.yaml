@@ -17,7 +17,7 @@ jobs:
 
     env:
       TF_VAR_FILE: "./vars/robopd2.tfvars"
-      PLAN_OUT_FILE: "tfplan.out"
+      PLAN_OUT_FILE: "/home/cameron/tfplan.out"
 
     steps:
       - name: Checkout code
@@ -44,17 +44,17 @@ jobs:
 
       - name: Upload plan file
         if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: terraform-plan
           path: ${{ env.PLAN_OUT_FILE }}
 
       - name: Download plan file
         if: github.event_name == 'push'
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: terraform-plan
-          path: .
+          path: ${{ env.PLAN_OUT_FILE }}
 
       - name: Terraform Apply
         if: github.event_name == 'push'
