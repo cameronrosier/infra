@@ -83,9 +83,9 @@ resource "aws_iam_instance_profile" "eks_nodes" {
 # Ingess Controller IAM Roles #
 ###############################
 module "lb_role" {
-  source    = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
 
-  role_name = "${var.app_name}_eks_lb"
+  role_name                              = "${var.app_name}_eks_lb"
   attach_load_balancer_controller_policy = true
 
   oidc_providers = {
@@ -97,7 +97,7 @@ module "lb_role" {
 }
 
 resource "aws_iam_openid_connect_provider" "default" {
-  url = data.aws_eks_cluster.main.identity[0].oidc[0].issuer
-  client_id_list = ["sts.amazonaws.com"]
+  url             = data.aws_eks_cluster.main.identity[0].oidc[0].issuer
+  client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = [data.external.thumb.result.thumbprint]
 }

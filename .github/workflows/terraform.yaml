@@ -31,6 +31,9 @@ jobs:
       - name: Terraform Format
         run: terraform fmt -recursive -check
         continue-on-error: true
+      
+      - name: Terraform init
+        run: terraform init
 
       - name: Terraform Validate
         run: terraform validate
