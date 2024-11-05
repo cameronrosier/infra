@@ -1,0 +1,11 @@
+cluster_name    = "robopd2-eks-cluster"
+vpc_tag_name    = "Robopd2 VPC"
+region          = "us-east-1"
+node_group_name = "robopd2-node-group"
+cluster_sg_name = "robopd2-eks-cluster-sg"
+nodes_sg_name   = "robopd2-eks-nodes-sg"
+
+alb_ingress_controller_name = "robopd2-eks-alb-ingress-controller"
+chart_repo = "https://aws.github.io/eks-charts"
+chart_name = "aws-load-balancer-controller"
+chart_namespace = "kube-system"
