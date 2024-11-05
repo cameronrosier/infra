@@ -53,8 +53,8 @@ jobs:
         if: github.event_name == 'push'
         uses: actions/download-artifact@v4
         with:
-          name: terraform-plan
-          path: ${{ env.PLAN_OUT_FILE }}
+          name: ${{ env.PLAN_OUT_FILE }}
+          path: ./tfplan.out
 
       - name: Terraform Apply
         if: github.event_name == 'push'
