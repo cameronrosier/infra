@@ -11,6 +11,10 @@ on:
 jobs:
   terraform:
     runs-on: self-hosted
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
     defaults:
       run:
         working-directory: ./terraform  # Update this path
@@ -29,33 +33,54 @@ jobs:
           terraform_version: '1.9.7'  # Specify your desired Terraform version
 
       - name: Terraform Format
+        id: fmt
         run: terraform fmt -recursive -check
         continue-on-error: true
       
       - name: Terraform init
+        id: init
         run: terraform init
 
       - name: Terraform Validate
+        id: validate
         run: terraform validate
 
       - name: Terraform Plan
+        id: plan
         if: github.event_name == 'pull_request'
         run: terraform plan -var-file="${{ env.TF_VAR_FILE }}" -out="${{ env.PLAN_OUT_FILE }}"
 
-      - name: Upload plan file
+      - uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
         with:
-          name: terraform-plan
-          path: ${{ env.PLAN_OUT_FILE }}
-
-      - name: Download plan file
-        if: github.event_name == 'push'
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ env.PLAN_OUT_FILE }}
-          path: ./tfplan.out
-
+          script: |
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+  
+            <details><summary>Show Plan</summary>
+  
+            \`\`\`\n
+            ${process.env.PLAN}
+            \`\`\`
+  
+            </details>
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+  
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+  
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+  
       - name: Terraform Apply
-        if: github.event_name == 'push'
-        run: terraform apply "${{ env.PLAN_OUT_FILE }}"
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve -input=false
