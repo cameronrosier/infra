@@ -149,3 +149,8 @@ variable "chart_namespace" {
   description = "The Helm chart namespace"
   type        = string
 }
+
+variable "chart_version" {
+  description = "The Helm chart version"
+  type        = string
+}
