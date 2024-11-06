@@ -10,4 +10,3 @@ chart_repo                   = "https://aws.github.io/eks-charts"
 chart_name                   = "aws-load-balancer-controller"
 chart_namespace              = "kube-system"
 chart_version                = "1.10.0"
-endpoint_public_access_cidrs = ["70.27.174.169/32"]

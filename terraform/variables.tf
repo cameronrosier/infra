@@ -68,7 +68,7 @@ variable "node_group_name" {
 
 variable "endpoint_private_access" {
   type        = bool
-  default     = false
+  default     = true
   description = "Indicates whether or not the Amazon EKS private API server endpoint is enabled."
 }
 
@@ -76,11 +76,6 @@ variable "endpoint_public_access" {
   type        = bool
   default     = true
   description = "Indicates whether or not the Amazon EKS public API server endpoint is enabled."
-}
-
-variable "endpoint_public_access_cidrs" {
-  type    = list(string)
-  default = [""]
 }
 
 variable "ami_type" {
