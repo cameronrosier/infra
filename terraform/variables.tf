@@ -32,10 +32,10 @@ variable "private_subnet_cidr_blocks" {
   description = "CIDR block ranges for the private subnets"
 }
 
-variable "public_subnet_cidr_block" {
-  type        = string
-  default     = "10.0.2.0/24"
-  description = "CIDR block range for the public subnet"
+variable "public_subnet_cidr_blocks" {
+  type        = list(string)
+  default     = ["10.0.2.0/24", "10.0.3.0/24"]
+  description = "CIDR block ranges for the public subnets"
 }
 
 variable "private_subnet_tag_name" {
@@ -68,7 +68,7 @@ variable "node_group_name" {
 
 variable "endpoint_private_access" {
   type        = bool
-  default     = false
+  default     = true
   description = "Indicates whether or not the Amazon EKS private API server endpoint is enabled."
 }
 
@@ -76,11 +76,6 @@ variable "endpoint_public_access" {
   type        = bool
   default     = true
   description = "Indicates whether or not the Amazon EKS public API server endpoint is enabled."
-}
-
-variable "endpoint_public_access_cidrs" {
-  type    = list(string)
-  default = [""]
 }
 
 variable "ami_type" {
@@ -140,22 +135,73 @@ variable "alb_ingress_controller_name" {
   type        = string
 }
 
-variable "chart_repo" {
+variable "alb_ingress_controller_chart_repo" {
   description = "The Helm chart repository"
   type        = string
 }
 
-variable "chart_name" {
+variable "alb_ingress_controller_chart_name" {
   description = "The Helm chart name"
   type        = string
 }
 
-variable "chart_namespace" {
+variable "alb_ingress_controller_chart_namespace" {
   description = "The Helm chart namespace"
   type        = string
 }
 
-variable "chart_version" {
+variable "alb_ingress_controller_chart_version" {
   description = "The Helm chart version"
   type        = string
+  default     = "1.10.0"
+}
+
+variable "external_dns_chart_version" {
+  description = "The Helm chart version"
+  type        = string
+  default     = "8.5.1"
+}
+
+variable "external_dns_chart_repo" {
+  description = "The Helm chart repository"
+  type        = string
+}
+
+variable "external_dns_chart_name" {
+  description = "The Helm chart name"
+  type        = string
+}
+
+variable "external_dns_chart_log_level" {
+  description = "The log level for the external-dns chart"
+  type        = string
+  default     = "info"
+}
+
+variable "external_dns_domain_filters" {
+  description = "The domain filters for the external-dns chart"
+  type        = list(string)
+  default     = ["robopd2.com"]
+}
+
+variable "app_ingress_name" {
+  description = "The name of the ingress resource"
+  type        = string
+  default     = "cluster-ingress"
+}
+
+variable "app_root_domain" {
+  description = "The root domain for the application"
+  type        = string
+  default     = "robopd2"
+}
+
+variable "app_ingress_rules" {
+  description = "List of ingress rules for the application"
+  type = list(object({
+    path         = string
+    service_name = string
+    service_port = string
+  }))
+  default = []
 }
