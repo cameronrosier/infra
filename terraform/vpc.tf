@@ -25,12 +25,13 @@ resource "aws_subnet" "private_subnet" {
 }
 
 resource "aws_subnet" "public_subnet" {
+  count             = length(var.azs)
   vpc_id            = aws_vpc.robopd2_vpc.id
-  cidr_block        = var.public_subnet_cidr_block
-  availability_zone = "us-east-1a"
+  cidr_block        = element(var.public_subnet_cidr_blocks, count.index)
+  availability_zone = element(var.azs, count.index)
 
   tags = {
-    Name                                        = "${var.public_subnet_tag_name}"
+    Name                                        = "${var.app_name}-public-subnet-${count.index}"
     "kubernetes.io/cluster/${var.cluster_name}" = "shared"
     "kubernetes.io/role/elb"                    = 1
   }
@@ -60,7 +61,7 @@ resource "aws_route_table" "main" {
 }
 
 resource "aws_route_table_association" "internet_access" {
-  subnet_id      = aws_subnet.public_subnet.id
+  subnet_id      = aws_subnet.public_subnet[0].id
   route_table_id = aws_route_table.main.id
 }
 
@@ -68,7 +69,7 @@ resource "aws_eip" "main" {}
 
 resource "aws_nat_gateway" "main" {
   allocation_id = aws_eip.main.id
-  subnet_id     = aws_subnet.public_subnet.id
+  subnet_id     = aws_subnet.public_subnet[0].id
 
   tags = {
     Name = "NAT Gateway for Custom Kubernetes Cluster"

@@ -53,7 +53,7 @@ resource "aws_security_group_rule" "nodes" {
   from_port         = 0
   to_port           = 65535
   protocol          = "-1"
-  cidr_blocks       = concat(var.private_subnet_cidr_blocks, [var.public_subnet_cidr_block])
+  cidr_blocks       = concat(var.private_subnet_cidr_blocks, var.public_subnet_cidr_blocks)
 }
 
 resource "aws_security_group_rule" "nodes_inbound" {
@@ -90,7 +90,7 @@ resource "aws_security_group_rule" "control_plane_inbound" {
   from_port         = 0
   to_port           = 65535
   protocol          = "tcp"
-  cidr_blocks       = concat(var.private_subnet_cidr_blocks, [var.public_subnet_cidr_block])
+  cidr_blocks       = concat(var.private_subnet_cidr_blocks, var.public_subnet_cidr_blocks)
 }
 
 resource "aws_security_group_rule" "control_plane_outbound" {

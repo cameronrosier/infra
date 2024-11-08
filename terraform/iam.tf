@@ -101,3 +101,56 @@ resource "aws_iam_openid_connect_provider" "default" {
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = [data.external.thumb.result.thumbprint]
 }
+
+################
+# External DNS #
+################
+resource "aws_iam_role" "external_dns" {
+  name = "${var.cluster_name}-external-dns"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::*:oidc-provider/${data.aws_eks_cluster.main.identity[0].oidc[0].issuer}"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "${data.aws_eks_cluster.main.identity[0].oidc[0].issuer}:sub": "system:serviceaccount:kube-system:external-dns"
+        }
+      }
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "external_dns" {
+  name_prefix = "${var.cluster_name}-external-dns"
+  role        = aws_iam_role.external_dns.name
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "route53:ChangeResourceRecordSets",
+          "route53:ListResourceRecordSets"
+        ]
+        Resource = "arn:aws:route53:::hostedzone/*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "route53:ListHostedZones",
+          "route53:ListResourceRecordSets"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}

@@ -22,3 +22,10 @@ data "external" "thumb" {
 data "http" "current_ip" {
   url = "http://checkip.amazonaws.com"
 }
+
+data "external" "robopd2_internal_loadbalancer_arn" {
+  program = ["sh", "-c", "aws elbv2 describe-load-balancers --no-cli-pager --query 'LoadBalancers[?Scheme==`internal`].LoadBalancerArn' --output json | jq -r 'map({arn: .}) | add'"]
+  depends_on = [
+    kubernetes_ingress_v1.ingress  
+  ]
+}
